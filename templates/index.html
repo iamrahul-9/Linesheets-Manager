@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Line Sheet Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            color: rgb(21, 21, 21);
+        }
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-5">
+    <div class="max-w-4xl mx-auto">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold">MINKAS Line Sheet Manager</h1>
+            <div class="flex space-x-4">
+                <a href="{{ url_for('list_line_sheets') }}" class="bg-gray-500 text-white px-4 py-2 rounded-lg">View Line Sheets</a>
+                <a href="{{ url_for('logout') }}" class="bg-red-500 text-white px-4 py-2 rounded-lg">Logout</a>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-lg mb-6">
+            <h2 class="text-2xl font-bold mb-4">Step 1: Upload Excel File</h2>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">Excel or CSV File</label>
+                <input type="file" id="excel-file" accept=".xlsx,.xls,.csv" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+            </div>
+            <button id="analyze-btn" class="bg-blue-500 text-white px-4 py-2 rounded-lg">Analyze File</button>
+            <div id="analyzing-loader" class="mt-4 hidden">
+                <div class="loader"></div>
+                <p class="text-center mt-2">Analyzing file...</p>
+            </div>
+        </div>
+
+        <div id="configuration-panel" class="bg-white p-6 rounded-lg shadow-lg mb-6 hidden">
+            <h2 class="text-2xl font-bold mb-4">Step 2: Configure Line Sheet</h2>
+            <form id="line-sheet-form" action="/upload-excel" method="post" enctype="multipart/form-data">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700">Line Sheet Title</label>
+                    <input type="text" name="title" placeholder="Enter Title" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700">Season</label>
+                    <select name="season" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                        <option value="SPRING/SUMMER 2025">SPRING/SUMMER 2025</option>
+                        <option value="FALL/WINTER 2025">FALL/WINTER 2025</option>
+                        <option value="RESORT 2025">RESORT 2025</option>
+                        <option value="HOLIDAY 2024">HOLIDAY 2024</option>
+                    </select>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700">Fields to Display</label>
+                    <div id="fields-container" class="mt-2 grid grid-cols-2 gap-2">
+                        <!-- Fields will be populated here -->
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="flex items-center">
+                        <input type="checkbox" name="show_size_ratios" value="true" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                        <span class="ml-2 text-sm text-gray-700">Show Size Ratios (S, M, L, etc.)</span>
+                    </label>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="flex items-center">
+                        <input type="checkbox" name="show_images" value="true" class="h-4 w-4 text-blue-600 border-gray-300 rounded" checked>
+                        <span class="ml-2 text-sm text-gray-700">Show Images</span>
+                    </label>
+                </div>
+                
+                <input type="file" name="excel" id="hidden-excel-file" class="hidden">
+                <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-lg">Generate Line Sheet</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const analyzeBtn = document.getElementById('analyze-btn');
+            const excelFileInput = document.getElementById('excel-file');
+            const hiddenExcelFileInput = document.getElementById('hidden-excel-file');
+            const configPanel = document.getElementById('configuration-panel');
+            const fieldsContainer = document.getElementById('fields-container');
+            const analyzingLoader = document.getElementById('analyzing-loader');
+            
+            analyzeBtn.addEventListener('click', function() {
+                if (!excelFileInput.files.length) {
+                    alert('Please select a file first');
+                    return;
+                }
+                
+                const formData = new FormData();
+                formData.append('excel', excelFileInput.files[0]);
+                
+                // Show loading indicator
+                analyzingLoader.classList.remove('hidden');
+                analyzeBtn.disabled = true;
+                
+                fetch('/analyze-excel', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('Error: ' + data.error);
+                        return;
+                    }
+                    
+                    // Clear any existing fields
+                    fieldsContainer.innerHTML = '';
+                    
+                    // Add checkboxes for each field
+                    data.columns.forEach(field => {
+                        const checkbox = document.createElement('div');
+                        checkbox.className = 'flex items-center';
+                        checkbox.innerHTML = `
+                            <input type="checkbox" name="fields[]" value="${field}" id="field-${field.replace(/\s+/g, '-').toLowerCase()}" 
+                                class="h-4 w-4 text-blue-600 border-gray-300 rounded" 
+                                ${['STYLE#', 'COLOR', 'CONTENT', 'PRICE'].includes(field) ? 'checked' : ''}>
+                            <label for="field-${field.replace(/\s+/g, '-').toLowerCase()}" class="ml-2 text-sm text-gray-700">${field}</label>
+                        `;
+                        fieldsContainer.appendChild(checkbox);
+                    });
+                    
+                    // Clone the file to the hidden input
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(excelFileInput.files[0]);
+                    hiddenExcelFileInput.files = dataTransfer.files;
+                    
+                    // Show the configuration panel
+                    configPanel.classList.remove('hidden');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while analyzing the file');
+                })
+                .finally(() => {
+                    // Hide loading indicator
+                    analyzingLoader.classList.add('hidden');
+                    analyzeBtn.disabled = false;
+                });
+            });
+        });
+    </script>
+</body>
+</html>

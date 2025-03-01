@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEST - Line Sheet</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.3/photoswipe.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.3/default-skin/default-skin.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.3/photoswipe.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --pswp-bg-opacity: 0;
+            --pswp-control-bg-opacity: 0;
+            --pswp-control-color: #1a0b0b;
+        }
+        body {
+            margin: 0;
+            font-family: 'times new roman', 'poppins', sans-serif;
+            color: rgb(21, 21, 21);
+        }
+        .content-text {
+            font-size: 0.5em;
+        }
+        .content-result {
+            font-size: 0.9em;
+            word-wrap: break-word;
+        }
+        .image-container img {
+            transition: transform 0.2s;
+        }
+        .image-container img:hover {
+            transform: scale(1.05);
+        }
+        .blurred {
+            filter: blur(10px);
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+        /* Custom PhotoSwipe theme */
+        .pswp__bg {
+            background-color: rgba(26, 32, 44, var(--pswp-bg-opacity)) !important;
+        }
+        .pswp__top-bar,
+        .pswp__caption,
+        .pswp__button--close,
+        .pswp__button--fs,
+        .pswp__button--zoom,
+        .pswp__button--arrow--left,
+        .pswp__button--arrow--right {
+            background-color: rgba(45, 55, 72, var(--pswp-control-bg-opacity)) !important;
+            color: var(--pswp-control-color) !important;
+        }
+        .pswp__button--close:before,
+        .pswp__button--fs:before,
+        .pswp__button--zoom:before,
+        .pswp__button--arrow--left:before,
+        .pswp__button--arrow--right:before {
+            color: var(--pswp-control-color) !important;
+        }
+        .pswp__caption__center {
+            font-size: 1.2em;
+            font-weight: bold;
+            text-align: center;
+            white-space: nowrap;
+            color: var(--pswp-control-color) !important;
+        }
+        .pswp__img {
+            border: 10px solid white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .pswp__button {
+            margin-right: 10px;
+        }
+
+        @media print {
+            body, #content-wrapper {
+                background: white !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                box-shadow: none !important;
+            }
+            a {
+                color: black !important;
+                text-decoration: none !important;
+                pointer-events: none !important;
+            }
+            .image-container img {
+                box-shadow: none !important;
+                border: none !important;
+            }
+            .pswp__bg, .pswp__top-bar, .pswp__button, .pswp__caption {
+                display: none !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+
+        /* Styles for generated PDF */
+        .pdf-view .image-container img {
+            box-shadow: none !important;
+            border: none !important;
+            transform: none !important;
+        }
+        .pdf-view a {
+            pointer-events: none;
+            text-decoration: none;
+            color: black;
+        }
+        .pdf-view .pswp__bg,
+        .pdf-view .pswp__top-bar,
+        .pdf-view .pswp__button,
+        .pdf-view .pswp__caption {
+            display: none !important;
+        }
+        .pdf-view .no-print {
+            display: none !important;
+        }
+        
+        /* Size ratio table styles */
+        .size-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+        }
+        .size-table th,
+        .size-table td {
+            border: 1px solid #e2e8f0;
+            padding: 4px;
+            text-align: center;
+        }
+        .size-table th {
+            background-color: #f8fafc;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-2 pdf-view">
+
+    <div id="content-wrapper" class="max-w-full mx-auto bg-white p-4 rounded-lg shadow-lg">
+        <div class="flex flex-col sm:flex-row justify-between items-center mb-4">
+            <div class="flex-1 text-center">
+                <h1 class="text-3xl font-bold uppercase italic">TEST</h1>
+                <h2 class="text-xl uppercase italic">SPRING/SUMMER 2025</h2>
+            </div>
+            <div class="flex-shrink-0 mt-2 sm:mt-0 no-print">
+                <a href="/" class="inline-block text-xl text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">
+                    BACK TO MANAGER
+                </a>
+                <button onclick="window.print()" class="inline-block text-xl text-white bg-gray-600 hover:bg-gray-700 focus:ring-4 focus:outline-none focus:ring-gray-300 rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">
+                    PRINT
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 mt-2">
+            
+            <div class="text-xl border p-2 rounded-lg bg-white shadow-lg text-left image-container">
+                
+                
+                <div class="border-t mt-2 pt-2">
+                    <strong>Style #:</strong> <span class="ml-2">nan</span>
+                </div>
+                
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>SIZES: S-XXL:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                S
+                            
+                        </span>
+                    </div>
+                    
+                
+                    
+                
+                
+                
+                
+                
+            </div>
+            
+            <div class="text-xl border p-2 rounded-lg bg-white shadow-lg text-left image-container">
+                
+                
+                <div class="border-t mt-2 pt-2">
+                    <strong>Style #:</strong> <span class="ml-2">CM-722</span>
+                </div>
+                
+                
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>DESCRIPTION:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                TOP
+                            
+                        </span>
+                    </div>
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>COLOR:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                TYE-DYE
+                            
+                        </span>
+                    </div>
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>CONTENT:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                85%RAYON 15%POLYESTER   
+                            
+                        </span>
+                    </div>
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>SIZES: S-XXL:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                1
+                            
+                        </span>
+                    </div>
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>PRICE:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                $36.00
+                            
+                        </span>
+                    </div>
+                    
+                
+                
+                
+                
+                
+            </div>
+            
+            <div class="text-xl border p-2 rounded-lg bg-white shadow-lg text-left image-container">
+                
+                
+                <div class="border-t mt-2 pt-2">
+                    <strong>Style #:</strong> <span class="ml-2">CM-724</span>
+                </div>
+                
+                
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>DESCRIPTION:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                SHIRT
+                            
+                        </span>
+                    </div>
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>COLOR:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                WHITE/BLACK
+                            
+                        </span>
+                    </div>
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>CONTENT:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                80%RAYON 20%POLYESTER   
+                            
+                        </span>
+                    </div>
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>SIZES: S-XXL:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                1
+                            
+                        </span>
+                    </div>
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>PRICE:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                $44.00
+                            
+                        </span>
+                    </div>
+                    
+                
+                
+                
+                
+                
+            </div>
+            
+            <div class="text-xl border p-2 rounded-lg bg-white shadow-lg text-left image-container">
+                
+                
+                <div class="border-t mt-2 pt-2">
+                    <strong>Style #:</strong> <span class="ml-2">CM-725</span>
+                </div>
+                
+                
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>DESCRIPTION:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                VEST
+                            
+                        </span>
+                    </div>
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>COLOR:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                RED
+                            
+                        </span>
+                    </div>
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>CONTENT:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                90%POLYESTER 10%SPANDEX
+                            
+                        </span>
+                    </div>
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>SIZES: S-XXL:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                2
+                            
+                        </span>
+                    </div>
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>PRICE:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                $42.00
+                            
+                        </span>
+                    </div>
+                    
+                
+                
+                
+                
+                
+            </div>
+            
+            <div class="text-xl border p-2 rounded-lg bg-white shadow-lg text-left image-container">
+                
+                
+                <div class="border-t mt-2 pt-2">
+                    <strong>Style #:</strong> <span class="ml-2">CM-726</span>
+                </div>
+                
+                
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>DESCRIPTION:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                TOP
+                            
+                        </span>
+                    </div>
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>COLOR:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                BLUE
+                            
+                        </span>
+                    </div>
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>CONTENT:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                70%RAYON 30%POLYESTER   
+                            
+                        </span>
+                    </div>
+                    
+                
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>PRICE:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                $34.00
+                            
+                        </span>
+                    </div>
+                    
+                
+                
+                
+                
+                
+            </div>
+            
+            <div class="text-xl border p-2 rounded-lg bg-white shadow-lg text-left image-container">
+                
+                
+                <div class="border-t mt-2 pt-2">
+                    <strong>Style #:</strong> <span class="ml-2">CM-726</span>
+                </div>
+                
+                
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>DESCRIPTION:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                TOP
+                            
+                        </span>
+                    </div>
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>COLOR:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                RED
+                            
+                        </span>
+                    </div>
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>CONTENT:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                70%RAYON 30%POLYESTER   
+                            
+                        </span>
+                    </div>
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>SIZES: S-XXL:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                1
+                            
+                        </span>
+                    </div>
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>PRICE:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                $34.00
+                            
+                        </span>
+                    </div>
+                    
+                
+                
+                
+                
+                
+            </div>
+            
+            <div class="text-xl border p-2 rounded-lg bg-white shadow-lg text-left image-container">
+                
+                
+                <div class="border-t mt-2 pt-2">
+                    <strong>Style #:</strong> <span class="ml-2">CM-728</span>
+                </div>
+                
+                
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>DESCRIPTION:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                SHIRT
+                            
+                        </span>
+                    </div>
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>COLOR:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                GREEN
+                            
+                        </span>
+                    </div>
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>CONTENT:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                70%RAYON 30%POLYESTER   
+                            
+                        </span>
+                    </div>
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>SIZES: S-XXL:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                1
+                            
+                        </span>
+                    </div>
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>PRICE:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                $36.00
+                            
+                        </span>
+                    </div>
+                    
+                
+                
+                
+                
+                
+            </div>
+            
+            <div class="text-xl border p-2 rounded-lg bg-white shadow-lg text-left image-container">
+                
+                
+                <div class="border-t mt-2 pt-2">
+                    <strong>Style #:</strong> <span class="ml-2">CM-732</span>
+                </div>
+                
+                
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>DESCRIPTION:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                TOP
+                            
+                        </span>
+                    </div>
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>COLOR:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                NAVY
+                            
+                        </span>
+                    </div>
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>CONTENT:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                90%POLYESTER 10%SPANDEX
+                            
+                        </span>
+                    </div>
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>SIZES: S-XXL:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                2
+                            
+                        </span>
+                    </div>
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>PRICE:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                $39.00
+                            
+                        </span>
+                    </div>
+                    
+                
+                
+                
+                
+                
+            </div>
+            
+            <div class="text-xl border p-2 rounded-lg bg-white shadow-lg text-left image-container">
+                
+                
+                <div class="border-t mt-2 pt-2">
+                    <strong>Style #:</strong> <span class="ml-2">CM-733</span>
+                </div>
+                
+                
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>DESCRIPTION:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                TOP
+                            
+                        </span>
+                    </div>
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>COLOR:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                LT. BLUE
+                            
+                        </span>
+                    </div>
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>CONTENT:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                85%RAYON 15%POLYESTER   
+                            
+                        </span>
+                    </div>
+                    
+                
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>PRICE:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                $42.00
+                            
+                        </span>
+                    </div>
+                    
+                
+                
+                
+                
+                
+            </div>
+            
+            <div class="text-xl border p-2 rounded-lg bg-white shadow-lg text-left image-container">
+                
+                
+                <div class="border-t mt-2 pt-2">
+                    <strong>Style #:</strong> <span class="ml-2">CM-735</span>
+                </div>
+                
+                
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>DESCRIPTION:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                VEST
+                            
+                        </span>
+                    </div>
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>COLOR:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                LEMON
+                            
+                        </span>
+                    </div>
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>CONTENT:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                70%COTTON 30%RAYON      
+                            
+                        </span>
+                    </div>
+                    
+                
+                    
+                
+                    
+                    <div class="border-t mt-2 pt-2">
+                        <strong>PRICE:</strong> 
+                        <span class="ml-2 content-result">
+                            
+                                $44.00
+                            
+                        </span>
+                    </div>
+                    
+                
+                
+                
+                
+                
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- PhotoSwipe UI template -->
+    <div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="pswp__bg"></div>
+        <div class="pswp__scroll-wrap">
+            <div class="pswp__container">
+                <div class="pswp__item"></div>
+                <div class="pswp__item"></div>
+                <div class="pswp__item"></div>
+            </div>
+            <div class="pswp__ui pswp__ui--hidden">
+                <div class="pswp__top-bar">
+                    <div class="pswp__counter"></div>
+                    <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+                    <button class="pswp__button pswp__button--share" title="Share"></button>
+                    <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+                    <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+                    <div class="pswp__preloader">
+                        <div class="pswp__preloader__icn">
+                            <div class="pswp__preloader__cut">
+                                <div class="pswp__preloader__donut"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                    <div class="pswp__share-tooltip"></div>
+                </div>
+                <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)"></button>
+                <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)"></button>
+                <div class="pswp__caption">
+                    <div class="pswp__caption__center"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize PhotoSwipe
+            var containers = document.querySelectorAll('.image-container');
+            var items = [];
+            
+            containers.forEach(function(container, index) {
+                var link = container.querySelector('a');
+                if (link) {
+                    var img = link.querySelector('img');
+                    if (img) {
+                        items.push({
+                            src: link.href,
+                            w: 1200, // Default size, will be updated when image loads
+                            h: 1500,
+                            title: link.getAttribute('data-caption')
+                        });
+                        
+                        link.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            openPhotoSwipe(index);
+                        });
+                    }
+                }
+            });
+            
+            function openPhotoSwipe(index) {
+                var pswpElement = document.querySelector('.pswp');
+                var options = {
+                    index: index,
+                    bgOpacity: 0.9,
+                    showHideOpacity: true,
+                    closeOnScroll: false,
+                    shareEl: false,
+                    fullscreenEl: true,
+                    zoomEl: true,
+                    counterEl: true,
+                    arrowEl: true,
+                    preloaderEl: true,
+                    history: false,
+                    getThumbBoundsFn: function(index) {
+                        var thumbnail = containers[index].querySelector('img');
+                        var pageYScroll = window.pageYOffset || document.documentElement.scrollTop;
+                        var rect = thumbnail.getBoundingClientRect();
+                        return {x:rect.left, y:rect.top + pageYScroll, w:rect.width};
+                    }
+                };
+                
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, options);
+                
+                // Update image sizes when they load
+                gallery.listen('imageLoadComplete', function(index, item) {
+                    if (item.img) {
+                        item.w = item.img.naturalWidth;
+                        item.h = item.img.naturalHeight;
+                        gallery.updateSize(true);
+                    }
+                });
+                
+                gallery.init();
+            }
+        });
+    </script>
+</body>
+</html>

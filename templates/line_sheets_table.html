@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - Line Sheet</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'times new roman', 'poppins', sans-serif;
+            color: rgb(21, 21, 21);
+        }
+        
+        .content-result {
+            font-size: 0.9em;
+            word-wrap: break-word;
+        }
+        
+        @media print {
+            body, #content-wrapper {
+                background: white !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                box-shadow: none !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            table {
+                border-collapse: collapse;
+            }
+            th, td {
+                border: 1px solid #000;
+            }
+        }
+        
+        /* Size ratio styles within table cells */
+        .size-ratio {
+            font-size: 0.8em;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .size-item {
+            display: inline-block;
+            padding: 2px 4px;
+            background-color: #f1f5f9;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-2 {{ 'pdf-view' if pdf_view else '' }}">
+
+    <div id="content-wrapper" class="max-w-full mx-auto bg-white p-4 rounded-lg shadow-lg">
+        <div class="flex flex-col sm:flex-row justify-between items-center mb-4">
+            <div class="flex-1 text-center">
+                <h1 class="text-3xl font-bold uppercase italic">{{ title }}</h1>
+                <h2 class="text-xl uppercase italic">{{ season }}</h2>
+            </div>
+            <div class="flex-shrink-0 mt-2 sm:mt-0 no-print">
+                <a href="{{ url_for('index') }}" class="inline-block text-xl text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">
+                    BACK TO MANAGER
+                </a>
+                <button onclick="window.print()" class="inline-block text-xl text-white bg-gray-600 hover:bg-gray-700 focus:ring-4 focus:outline-none focus:ring-gray-300 rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">
+                    PRINT
+                </button>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full border border-gray-300">
+                <thead>
+                    <tr class="bg-gray-100 text-left text-sm uppercase">
+                        <th class="py-2 px-3 border border-gray-300">Style #</th>
+                        {% for field in fields %}
+                            {% if field != 'STYLE#' %}
+                            <th class="py-2 px-3 border border-gray-300">{{ field }}</th>
+                            {% endif %}
+                        {% endfor %}
+                        {% if 'size_range' in products[0][2] %}
+                        <th class="py-2 px-3 border border-gray-300">Sizes</th>
+                        {% endif %}
+                        {% if show_size_ratios %}
+                        <th class="py-2 px-3 border border-gray-300">Size Ratio</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="py-2 px-3 border border-gray-300 font-bold">{{ product[1] }}</td>
+                        
+                        {% for field in fields %}
+                            {% if field != 'STYLE#' and field in product[2] %}
+                            <td class="py-2 px-3 border border-gray-300">
+                                {% if field == 'PRICE' %}
+                                    ${{ "%.2f"|format(product[2][field]|float) }}
+                                {% else %}
+                                    {{ product[2][field] }}
+                                {% endif %}
+                            </td>
+                            {% elif field != 'STYLE#' %}
+                            <td class="py-2 px-3 border border-gray-300">-</td>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if 'size_range' in product[2] %}
+                        <td class="py-2 px-3 border border-gray-300">{{ product[2]['size_range'] }}</td>
+                        {% endif %}
+                        
+                        {% if show_size_ratios and 'sizes_ratio' in product[2] and product[2]['sizes_ratio'] %}
+                        <td class="py-2 px-3 border border-gray-300">
+                            <div class="size-ratio">
+                                {% for size, quantity in product[2]['sizes_ratio'].items() %}
+                                <span class="size-item">{{ size }}: {{ quantity }}</span>
+                                {% endfor %}
+                            </div>
+                        </td>
+                        {% elif show_size_ratios %}
+                        <td class="py-2 px-3 border border-gray-300">-</td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Any table-specific JavaScript can go here
+        });
+    </script>
+</body>
+</html>
